@@ -7,11 +7,11 @@ import os
 
 
 client = OpenAI(
-    api_key=os.environ.get("API_KEY"),
+    api_key=os.environ.get("API_KEY", "test"),
     base_url=os.environ.get("BASE_URL", "http://127.0.0.1:3425"),
 )
 
-MODEL = os.environ.get("MODEL", "imported-2/gpt-6.1-terra")
+MODEL = os.environ.get("MODEL", "commandcode-plan/deepseek/deepseek-v4.1-flash-fast")
 MAX_STEPS = 20  # 防止死循环：Agent 最多转 20 圈
 
 
@@ -97,11 +97,9 @@ def run(task: str) -> None:
 
             except Exception as e: # 工具出错，也要告诉模型，让它去修正
                 result = f"工具执行出错{type(e).__name__}:{e}"
-
-
             messages.append({"role": "tool", "tool_call_id": call.id, "content": result})
 
-        print(f"\n 达到{MAX_STEPS}步上限，已停止")
+    print(f"\n 达到{MAX_STEPS}步上限，已停止")
 
 
 
