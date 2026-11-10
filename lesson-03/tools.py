@@ -81,11 +81,11 @@ def write_file(path, content):
     return f"已写入 {path}（{len(content)} 字符）"
 
 
-@tool(
-    "edit_file",
-    "修改指定文件内容，必须同时传入 new, old",
-    _params(path="修改文件的路径", new_text="新的内容", old_text="需要修改的内容"),
-)
+# @tool(
+#     "edit_file",
+#     "修改指定文件内容，必须同时传入 new, old",
+#     _params(path="修改文件的路径", new_text="新的内容", old_text="需要修改的内容"),
+# )
 # def edit_file(path: str, new_text: str, old_text: str):
 #
 #     if not old_text:
