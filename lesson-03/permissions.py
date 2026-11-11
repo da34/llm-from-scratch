@@ -23,9 +23,11 @@ class Risk(Enum):
 TOOL_RISK = {
     "list_dir": Risk.SAFE,
     "read_file": Risk.SAFE,
+    "get_time": Risk.SAFE,
     "write_file": Risk.CONFIRM,
     "run_shell": Risk.CONFIRM,
     "fetch_url": Risk.CONFIRM,
+    "edit_file": Risk.CONFIRM,
 }
 
 # 允许“本次会话一直允许”的工具， run_shell 不在里面。每条命令都要过目
@@ -43,7 +45,7 @@ SHELL_DENY_PATTERNS = [
 ]
 
 
-def resovle_in_workspace(path_str: str) -> Path | None:
+def resolve_in_workspace(path_str: str) -> Path | None:
     """把路径解析成绝对路径，不在工作区返回none。 resolve() 会展开 .. 和符号链接，
     所以 ../../etc/passwd 和指向外部的软链都会被识别"""
 
@@ -66,7 +68,7 @@ def render_call(name: str, args: dict, max_chars: int = 400) -> str:
     if name == "run_shell":
         return f" ${args.get('command', '')}"
 
-    if name == "wirte_file":
+    if name == "write_file":
         content = args.get("content", "")
         preview = content[:max_chars]
 
@@ -107,7 +109,7 @@ class PermissionManager:
         if name in ("read_file", "write_file", "list_dir"):
             path = args.get("path", ".")
 
-            if resovle_in_workspace(path) is None:
+            if resolve_in_workspace(path) is None:
                 return f"路径{path!r} 在工作区{WORKSPACE}之外。禁止访问"
 
         if name == "run_shell":
