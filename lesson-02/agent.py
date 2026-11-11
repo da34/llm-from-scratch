@@ -3,8 +3,14 @@ import os
 
 from openai import OpenAI
 from tools import execute, get_schemas
+from dotenv import load_dotenv
 
-client = OpenAI(api_key="test", base_url="http://127.0.0.1:3425")
+load_dotenv()
+
+client = OpenAI(
+    api_key=os.environ.get("API_KEY"),
+    base_url=os.environ.get("BASE_URL"),
+)
 
 MODEL = "commandcode-plan/deepseek/deepseek-v4.1-flash-fast"
 MAX_STEPS = 20  # 放置模型陷入死循环
@@ -29,7 +35,6 @@ def run(user_input, messages):
         if not msg.tool_calls:
             return msg.content or ""
 
-
         # 模型可能一轮请求多个工具，每个都必须回应
         for call in msg.tool_calls:
             name = call.function.name
@@ -43,9 +48,12 @@ def run(user_input, messages):
                 print(f"🔧 {name}({call.function.arguments[:80]})")
                 result = execute(name, args)
 
-            messages.append({"role": "tool", "tool_call_id": call.id, "content": result})
+            messages.append(
+                {"role": "tool", "tool_call_id": call.id, "content": result}
+            )
 
     return "(达到最大步数，已停止)"
+
 
 if __name__ == "__main__":
     messages = [{"role": "system", "content": SYSTEM}]

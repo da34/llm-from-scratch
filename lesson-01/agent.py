@@ -1,14 +1,15 @@
 import subprocess
 import json
 from openai import OpenAI
-from sympy.utilities.iterables import capture
 import sys
 import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
 client = OpenAI(
-    api_key=os.environ.get("API_KEY", "test"),
-    base_url=os.environ.get("BASE_URL", "http://127.0.0.1:3425"),
+    api_key=os.environ.get("API_KEY"),
+    base_url=os.environ.get("BASE_URL"),
 )
 
 MODEL = os.environ.get("MODEL", "commandcode-plan/deepseek/deepseek-v4.1-flash-fast")

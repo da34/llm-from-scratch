@@ -4,8 +4,14 @@ import os
 from openai import OpenAI
 from tools import execute, get_schemas
 from permissions import PermissionManager
+from dotenv import load_dotenv
 
-client = OpenAI(api_key="test", base_url="http://127.0.0.1:3425")
+load_dotenv()
+
+client = OpenAI(
+    api_key=os.environ.get("API_KEY"),
+    base_url=os.environ.get("BASE_URL"),
+)
 
 MODEL = "workbuddy-ai/hy4free"
 MAX_STEPS = 20  # 放置模型陷入死循环
