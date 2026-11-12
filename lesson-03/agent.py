@@ -13,6 +13,8 @@ client = OpenAI(
     base_url=os.environ.get("BASE_URL"),
 )
 
+pems = PermissionManager()
+
 MODEL = "workbuddy-ai/hy4free"
 MAX_STEPS = 20  # 放置模型陷入死循环
 
@@ -39,7 +41,7 @@ def handle_call(call, perms):
 
 def run(user_input, messages):
     messages.append({"role": "user", "content": user_input})
-    pems = PermissionManager()
+
 
     for _ in range(MAX_STEPS):
         resp = client.chat.completions.create(
