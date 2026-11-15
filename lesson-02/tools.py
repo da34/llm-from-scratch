@@ -3,8 +3,6 @@ import time
 import urllib.request
 from pathlib import Path
 
-from mpmath import chebyt
-
 MAX_OUTPUT = 8000  # 工具返回给模型的最大字符数
 TOOLS = {}
 
