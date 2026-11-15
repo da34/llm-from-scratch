@@ -15,7 +15,7 @@ client = OpenAI(
 
 pems = PermissionManager()
 
-MODEL = "workbuddy-ai/hy4free"
+MODEL = "deepseek/deepseek-flash"
 MAX_STEPS = 20  # 放置模型陷入死循环
 
 SYSTEM = (
@@ -44,10 +44,17 @@ def run(user_input, messages):
 
 
     for _ in range(MAX_STEPS):
-        resp = client.chat.completions.create(
+        with client.chat.completions.stream(
             model=MODEL, messages=messages, tools=get_schemas()
-        )
-        msg = resp.choices[0].message
+        ) as stream:
+            for event in stream:
+                if event.type == "content.delta":
+                    print(event.delta, end="", flush=True)
+            msg = stream.get_final_completion().choices[0].message
+
+        if msg.content:
+            print()
+
         messages.append(msg.model_dump(exclude_none=True))
 
         # 没有工具调用，说明模型给出了最终回答
@@ -63,6 +70,7 @@ def run(user_input, messages):
 
             messages.append({"role": "tool", "tool_call_id": call.id, "content": result})
 
+    print("(达到最大步数，已停止)")
     return "(达到最大步数，已停止)"
 
 if __name__ == "__main__":
@@ -71,4 +79,6 @@ if __name__ == "__main__":
         q = input("你> ").strip()
         if q in ("exit", "quit"):
             break
-        print("\n" + run(q, messages) + "\n")
+        print()
+        run(q, messages)
+        print()
