@@ -6,7 +6,18 @@ from tools import execute, get_schemas
 from permissions import PermissionManager
 from dotenv import load_dotenv
 
+from context import (truncate_tool_result, clear_old_tool_results, compact, save_session, load_session)
+
 load_dotenv()
+
+
+SOFT_LIMIT = 16000 # 超过：清理旧工具结果
+HARD_LIMIT = 24000 # 超过： 简要压缩
+
+usage = {"prompt_tokens": 0} # 上一次调用的真实 token 数
+
+
+
 
 client = OpenAI(
     api_key=os.environ.get("API_KEY"),
@@ -44,9 +55,20 @@ def run(user_input, messages):
 
 
     for _ in range(MAX_STEPS):
+
+        # 用上一次调用的真实 token 数，决定这一轮是否需要处理
+        if usage["prompt_tokens"] > HARD_LIMIT:
+            messages[:] = compact(client, MODEL, messages)
+
+        elif usage["prompt_tokens"] > SOFT_LIMIT:
+            clear_old_tool_results(messages)
+
         resp = client.chat.completions.create(
             model=MODEL, messages=messages, tools=get_schemas()
         )
+        usage["prompt_tokens"] = resp.usage.prompt_tokens if resp.usage else 0
+        print(f"   [prompt_tokens={usage['prompt_tokens']}]")
+
         msg = resp.choices[0].message
         messages.append(msg.model_dump(exclude_none=True))
 
@@ -61,7 +83,7 @@ def run(user_input, messages):
             print(f"🔧 {name}({call.function.arguments[:80]})")
             result = handle_call(call, pems)
 
-            messages.append({"role": "tool", "tool_call_id": call.id, "content": result})
+            messages.append({"role": "tool", "tool_call_id": call.id, "content": truncate_tool_result(result)})
 
     return "(达到最大步数，已停止)"
 
@@ -72,3 +94,4 @@ if __name__ == "__main__":
         if q in ("exit", "quit"):
             break
         print("\n" + run(q, messages) + "\n")
+        save_session("default", messages)
