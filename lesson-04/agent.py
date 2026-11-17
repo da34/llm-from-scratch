@@ -11,8 +11,11 @@ from context import (truncate_tool_result, clear_old_tool_results, compact, save
 load_dotenv()
 
 
+# SOFT_LIMIT = 3000 # 超过：清理旧工具结果
+# HARD_LIMIT = 6000 # 超过： 简要压缩
 SOFT_LIMIT = 16000 # 超过：清理旧工具结果
 HARD_LIMIT = 24000 # 超过： 简要压缩
+
 
 usage = {"prompt_tokens": 0} # 上一次调用的真实 token 数
 
@@ -88,7 +91,7 @@ def run(user_input, messages):
     return "(达到最大步数，已停止)"
 
 if __name__ == "__main__":
-    messages = [{"role": "system", "content": SYSTEM}]
+    messages = load_session("default") or [{"role": "system", "content": SYSTEM}]
     while True:
         q = input("你> ").strip()
         if q in ("exit", "quit"):

@@ -1,4 +1,3 @@
-from enum import KEEP
 import json
 import os
 from pathlib import Path
@@ -85,12 +84,12 @@ def compact(client, model, messages):
         ]
     )
 
-    summary = resp.choices[0].messages.content
+    summary = resp.choices[0].message.content
 
     return [
         messages[0],
         { "role": "user", "content": f"[以下是此前对话的摘要]\n{summary}" },
-        { "role": "assistant", "content": "好的，我已了解之前的进展，继续" }
+        { "role": "assistant", "content": "好的，我已了解之前的进展，继续" },
         *recent
     ]
 
