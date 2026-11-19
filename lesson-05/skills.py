@@ -29,7 +29,7 @@ def discover(skills_dir=None):
     if not skills_dir.is_dir():
         return found
 
-    for f in sorted(skills_dir.glob("*/SKILLS.md")):
+    for f in sorted(skills_dir.glob("*/SKILL.md")):
         meta, _ = parse_skills(f.read_text(encoding="utf-8"))
         name = meta.get("name") or f.parent.name
 

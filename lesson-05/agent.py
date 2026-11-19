@@ -96,7 +96,6 @@ def run(user_input, messages):
 if __name__ == "__main__":
     messages = [{"role": "system", "content": ""}]
     messages[0] = {"role": "system", "content": build_system()}
-    print(messages)
     while True:
         q = input("你> ").strip()
         if q in ("exit", "quit"):
