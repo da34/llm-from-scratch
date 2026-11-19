@@ -99,7 +99,7 @@ def run(session, user_input, client, model=MODEL, log=print):
         if session.prompt_tokens > HARD_LIMIT:
             messages[:] = compact(client, model, messages)
 
-        elif usage["prompt_tokens"] > SOFT_LIMIT:
+        elif session.prompt_tokens > SOFT_LIMIT:
             clear_old_tool_results(messages)
 
         resp = client.chat.completions.create(
