@@ -31,8 +31,6 @@ client = OpenAI(
     base_url=os.environ.get("BASE_URL"),
 )
 
-pems = PermissionManager()
-
 MODEL = "workbuddy-ai/hy4flash-free"
 MAX_STEPS = 20  # 放置模型陷入死循环
 
@@ -106,7 +104,7 @@ def run(session, user_input, client, model=MODEL, log=print):
             model=model, messages=messages, tools=get_schemas()
         )
         session.prompt_tokens = resp.usage.prompt_tokens if resp.usage else 0
-        print(f"   [prompt_tokens={usage['prompt_tokens']}]")
+        print(f"   [prompt_tokens={session.prompt_tokens}]")
 
         msg = resp.choices[0].message
         messages.append(msg.model_dump(exclude_none=True))
@@ -119,7 +117,7 @@ def run(session, user_input, client, model=MODEL, log=print):
         for call in msg.tool_calls:
             name = call.function.name
             print(f"🔧 {name}({call.function.arguments[:80]})")
-            result = handle_call(call, pems)
+            result = handle_call(call, session.perms)
 
             messages.append(
                 {
