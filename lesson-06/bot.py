@@ -3,8 +3,6 @@ import os
 import sys
 import time
 
-from mpmath.function_docs import e1
-
 from agent import Session, run, make_client
 from context import SESSION_DIR
 from permissions import REMEMBERABLE, render_call
