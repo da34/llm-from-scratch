@@ -1,5 +1,8 @@
+from copy import deepcopy
+from unittest.mock import Mock
+
 import context
-from context import truncate_tool_result, clear_old_tool_results, split_for_compact
+from context import truncate_tool_result, clear_old_tool_results, split_for_compact, compact
 
 
 def check_pairing(messages):
@@ -50,6 +53,51 @@ def test_split_keeps_pairs():
     assert recent[0] == {"role": "user", "content": "任务 2"}
     check_pairing([msgs[0]] + recent)
     assert split_for_compact(msgs[:5], keep_turns=2) is None   # 只有一轮，不压缩
+
+
+def test_compact_skips_when_only_recent_turns():
+    msgs = [{"role": "system", "content": "系统提示"}, *fake_turn(0), *fake_turn(1)]
+    original = deepcopy(msgs)
+    client = Mock()
+
+    result = compact(client, "test-model", msgs)
+
+    assert result == msgs == original
+    assert client.mock_calls == []
+
+
+def test_compact_summarizes_only_old_turns():
+    system = {"role": "system", "content": "系统提示"}
+    recent = fake_turn(1) + fake_turn(2)
+    msgs = [system, *fake_turn(0), *recent]
+    original = deepcopy(msgs)
+    summary = "任务 0 已完成"
+    client = Mock()
+    create = client.chat.completions.create
+    create.return_value.choices = [Mock(message=Mock(content=summary))]
+
+    result = compact(client, "test-model", msgs)
+
+    old_history = (
+        "[user] 任务 0\n"
+        '[assistant 调用工具] read_file({"path": "a"})\n'
+        f"[tool] {'x' * 100}\n"
+        "[assistant] 完成 0"
+    )
+    create.assert_called_once_with(
+        model="test-model",
+        messages=[
+            {"role": "system", "content": context.SUMMARY_PROMPT},
+            {"role": "user", "content": old_history},
+        ],
+    )
+    system_message, summary_message, acknowledgement, *retained = result
+    assert system_message == system
+    assert summary_message["role"] == "user"
+    assert summary in summary_message["content"]
+    assert acknowledgement["role"] == "assistant"
+    assert retained == recent
+    assert msgs == original
 
 
 def test_session_roundtrip():
