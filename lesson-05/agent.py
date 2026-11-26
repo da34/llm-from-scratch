@@ -94,7 +94,7 @@ def run(user_input, messages):
     return "(达到最大步数，已停止)"
 
 if __name__ == "__main__":
-    messages = [{"role": "system", "content": ""}]
+    messages = load_session("default") or [{"role": "system", "content": ""}]
     messages[0] = {"role": "system", "content": build_system()}
     while True:
         q = input("你> ").strip()
